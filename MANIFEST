@@ -1,0 +1,13 @@
+COPYING
+dist/make.pod
+dist/Makefile.pp
+dist/makerelease.xml
+lib/TheOneRing.pm
+lib/TheOneRing/GIT.pm
+lib/TheOneRing/SVK.pm
+lib/TheOneRing/SVN.pm
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+tor
+META.yml                                 Module meta-data (added by MakeMaker)
