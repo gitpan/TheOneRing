@@ -8,7 +8,7 @@ use IO::File;
 
 our @ISA = qw(TheOneRing);
 
-our $VERSION = '0.22';
+our $VERSION = '0.3';
 
 sub init {
     my ($self) = @_;
@@ -58,6 +58,18 @@ sub init {
 		  r => '-r'}
        },
 
+       'add' =>
+       {
+	options => ['-m','adding files'],
+	args => { }
+       },
+
+       'remove' =>
+       {
+	options => ['-f'],
+	args => { N => 'l' }
+       },
+
       };
 }
 
@@ -99,6 +111,11 @@ sub revert {
 sub ignore {
     my ($self, @args) = @_;
     $self->add_to_file(".cvsignore", @args);
+}
+
+sub move {
+    my ($self, @args) = @_;
+    $self->move_by_adddel(@args);
 }
 
 1;

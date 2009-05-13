@@ -6,7 +6,7 @@ use strict;
 use UNIVERSAL;
 use Getopt::GUI::Long;
 
-our $VERSION = '0.22';
+our $VERSION = '0.3';
 
 our %master_arguments =
   (
@@ -83,6 +83,10 @@ our %master_arguments =
    [
     ["N|non-recursive"     => "Don't decend into subdirectiories"],
     ["q|quiet"             => "Quiet output"],
+   ],
+
+   'move' =>
+   [
    ],
 
    'ignore' =>
@@ -193,6 +197,8 @@ sub dispatch {
     $self->debug("found subtype $repotype");
 
     my $submodule = $self->load_subtype($repotype);
+    $self->ERROR("failed to load $repotype: \n", $@) if (!$submodule);
+
     $self->debug("running $repotype->$command");
 
     # they have a method defined
@@ -215,6 +221,9 @@ sub dispatch {
 
 sub expect_string {
     my ($self, $value, @args) = @_;
+    if (!defined($value)) {
+	return $value; #XXX: should be an error?
+    }
     if (ref($value) eq 'CODE') {
 	return $value->($self, @args);
     } elsif ($value eq 'ARRAY' && ref($value->[0]) eq 'CODE') {
@@ -252,7 +261,7 @@ sub save_ARGV {
     my ($self, $newargv, @newargs) = @_;
 
     # save the current program name
-    my $self->{'savedprog'} = $main::0;
+    $self->{'savedprog'} = $main::0;
     $main::0 = $newargv if (defined($newargv));
 
     # save the existing ARGV arguments (just in case)
@@ -325,7 +334,8 @@ sub map_args {
 sub map_and_run {
     my ($self, $subcmd, $map, @args) = @_;
 
-    my ($cmd, $subcmd, $options, $otherargs) =
+    my ($cmd, $options, $otherargs);
+    ($cmd, $subcmd, $options, $otherargs) =
       $self->map_args($subcmd, $map, @args);
 
     $self->System($cmd, $subcmd, @$options, @$otherargs);
@@ -465,11 +475,17 @@ sub add_to_file {
 }
 
 #
-# Aliases to other functions
+# common functions
 #
-sub co {
-    my $mod = shift;
-    $mod->checkout(@_);
+sub move_by_adddel {
+    my ($self, @args) = @_;
+    $self->ERROR("move can only take one OLD and one NEW file")
+      if ($#args != 1);
+
+    my ($old, $new) = @args;
+    rename($old, $new);
+    $self->dispatch("remove", "$old");
+    $self->dispatch("add", "$new");
 }
 
 #
@@ -504,6 +520,9 @@ directory.  IE, if in a CVS checkout directory then the
 TheOneRing::CVS module is loaded and the child is called to process
 the command.
 
+B<or> is the command line wrapper around this class, and is what most
+users are expected to need.
+
 =head2 Programming Child Classes
 
 Most commands can be processed by simple definitions without coding
@@ -519,7 +538,7 @@ Yes, much more documentation is needed here.
 
 =head1 SEE ALSO
 
-The command line wrapper: tor(1)
+The command line wrapper: or(1)
 
 =head1 AUTHOR
 
